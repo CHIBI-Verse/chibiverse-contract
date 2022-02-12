@@ -14,13 +14,11 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
 
     // CONSTANT
     string public constant PROVENANCE =
-        "c389a96770448e649eac0290b3fb156bc9911f35806e926f3220daf6d228bb52";
+        "d1989a129dfa326cff26253b71cb0b50763868c8329b59b8915bfdbdd0562b3c";
     uint256 public constant MAX_CHIBI_PURCHASE = 20; // Max Chibi can mint per tx
-    // uint256 public constant MAX_CHIBI = 10000; // Max supply of Minted Chibi
-    uint256 public constant MAX_CHIBI = 100; // Max supply of Minted Chibi
+    uint256 public constant MAX_CHIBI = 10000; // Max supply of Minted Chibi
     uint256 public constant CHIBI_PRICE = 0.006 ether; // Chibi price - 0.006 ETH
-    // uint256 public constant MAX_GIEVAWAY_RESERVE = 50;
-    uint256 public constant MAX_GIEVAWAY_RESERVE = 10;
+    uint256 public constant MAX_GIEVAWAY_RESERVE = 50;
 
     Counters.Counter private supply;
     Counters.Counter private gievawaySupply;
