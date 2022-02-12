@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "../node_modules/@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
@@ -14,12 +14,13 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
 
     // CONSTANT
     string public constant PROVENANCE =
-        "1c96ec246a8dc70486fe93748c35ce97b2269ba4bfabe9c81d6e3835cc2d6ecd";
+        "c389a96770448e649eac0290b3fb156bc9911f35806e926f3220daf6d228bb52";
     uint256 public constant MAX_CHIBI_PURCHASE = 20; // Max Chibi can mint per tx
     // uint256 public constant MAX_CHIBI = 10000; // Max supply of Minted Chibi
     uint256 public constant MAX_CHIBI = 100; // Max supply of Minted Chibi
-    uint256 public constant PRICE = 0.006 ether; // Chibi price - 0.006 ETH
-    uint256 public constant GIEVAWAY_RESERVE = 50;
+    uint256 public constant CHIBI_PRICE = 0.006 ether; // Chibi price - 0.006 ETH
+    // uint256 public constant MAX_GIEVAWAY_RESERVE = 50;
+    uint256 public constant MAX_GIEVAWAY_RESERVE = 10;
 
     Counters.Counter private supply;
     Counters.Counter private gievawaySupply;
@@ -32,14 +33,15 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
     mapping(address => bool) giveawayList;
     mapping(address => bool) claimedList;
 
-    constructor(string memory _uriPrefix, string memory _uriSuffix)
-        ERC721("ChibiVerse", "CHIBI")
-    {
+    constructor(
+        string memory _uriPrefix,
+        string memory _uriSuffix,
+        string memory _hiddenMetadataUri
+    ) ERC721("ChibiVerse", "CHIBI") {
         setUriPrefix(_uriPrefix);
         setUriSuffix(_uriSuffix);
-        setHiddenMetadataUri(
-            "ipfs://QmNs3r2n1TMCb38f9Y5bETWgmvSJx15h9MHWYBubj85fjQ"
-        );
+        setHiddenMetadataUri(_hiddenMetadataUri);
+        _pause();
     }
 
     // modifier
@@ -116,6 +118,7 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         return supply.current();
     }
 
+    // public
     function tokenURI(uint256 _tokenId)
         public
         view
@@ -129,7 +132,14 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         );
 
         if (revealed == false) {
-            return hiddenMetadataUri;
+            return
+                string(
+                    abi.encodePacked(
+                        hiddenMetadataUri,
+                        _tokenId.toString(),
+                        uriSuffix
+                    )
+                );
         }
 
         return
@@ -144,7 +154,7 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         nonReentrant
         mintCompliance(_mintAmount)
     {
-        require(msg.value >= PRICE * _mintAmount, "Insufficient funds!");
+        require(msg.value >= CHIBI_PRICE * _mintAmount, "Insufficient funds!");
 
         _mintLoop(_msgSender(), _mintAmount);
     }
@@ -157,7 +167,7 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         mintCompliance(1)
     {
         require(
-            gievawaySupply.current() + 1 <= GIEVAWAY_RESERVE,
+            gievawaySupply.current() + 1 <= MAX_GIEVAWAY_RESERVE,
             "Max gievaway supply exceeded!"
         );
         _mintLoop(_msgSender(), 1);
@@ -180,6 +190,15 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
         return tokensId;
     }
 
+    function claimable(address _address) public view returns (bool) {
+        return _claimable(_address) && _isGiveawayListed(_address);
+    }
+
+    function GIEVAWAY_RESERVE() public view returns (uint256) {
+        return MAX_GIEVAWAY_RESERVE - gievawaySupply.current();
+    }
+
+    // onlyOwner
     function setRevealed() public onlyOwner {
         revealed = true;
     }
@@ -197,10 +216,6 @@ contract ChibiVerse is ERC721Enumerable, Ownable, ReentrancyGuard, Pausable {
 
     function setUriSuffix(string memory _uriSuffix) public onlyOwner {
         uriSuffix = _uriSuffix;
-    }
-
-    function claimable(address _address) public view returns (bool) {
-        return _claimable(_address) && _isGiveawayListed(_address);
     }
 
     function addToGiveawayList(address _address)

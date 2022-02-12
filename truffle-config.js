@@ -18,10 +18,13 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+
+const fs = require('fs');
+const mnemonic = fs.readFileSync('.secret').toString().trim();
+
+// const HDWalletProvider = require('truffle-hdwallet-provider')
+require('dotenv').config();
 
 module.exports = {
   /**
@@ -41,11 +44,33 @@ module.exports = {
     // tab if you use this network and you must also set the `host`, `port` and `network_id`
     // options below to some value.
     //
-    // development: {
-    //  host: "127.0.0.1",     // Localhost (default: none)
-    //  port: 8545,            // Standard Ethereum port (default: none)
-    //  network_id: "*",       // Any network (default: none)
-    // },
+    development: {
+      host: '127.0.0.1', // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      provider: function () {
+        return new HDWalletProvider(mnemonic, 'http://127.0.0.1:8545/');
+      },
+      network_id: '*', // Any network (default: none)
+    },
+    rinkeby: {
+      provider: function () {
+        return new HDWalletProvider(
+          mnemonic,
+          `https://rinkeby.infura.io/v3/${process.env.INFURA_ID}`,
+        );
+      },
+      network_id: 4,
+    },
+    mainnet: {
+      provider: function () {
+        return new HDWalletProvider(
+          mnemonic,
+          `https://mainnet.infura.io/v3/${process.env.INFURA_ID}`,
+        );
+      },
+      network_id: 1,
+    },
+
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -73,6 +98,10 @@ module.exports = {
     // }
   },
 
+  api_keys: {
+    etherscan: process.env.ETHERSCAN_API_KEY,
+  },
+
   // Set default mocha options here, use special reporters etc.
   mocha: {
     // timeout: 100000
@@ -94,7 +123,7 @@ module.exports = {
     },
   },
 
-  plugins: ['@chainsafe/truffle-plugin-abigen'],
+  plugins: ['@chainsafe/truffle-plugin-abigen', 'truffle-plugin-verify'],
 
   // Truffle DB is currently disabled by default; to enable it, change enabled:
   // false to enabled: true. The default storage location can also be

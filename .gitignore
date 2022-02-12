@@ -12,3 +12,4 @@ abigenBindings/
 test/
 
 .env
+.secret
