@@ -13,3 +13,4 @@ test/
 
 .env
 .secret
+.secret.testnet
