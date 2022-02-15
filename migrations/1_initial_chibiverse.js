@@ -8,10 +8,5 @@ module.exports = function (deployer, network, accounts) {
     network,
   });
 
-  deployer.deploy(
-    Chibiverse,
-    process.env.PREFIX_URI,
-    '',
-    process.env.HIDDEN_URI,
-  );
+  deployer.deploy(Chibiverse, process.env.PREFIX_URI);
 };
